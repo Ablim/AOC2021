@@ -1,4 +1,14 @@
-﻿
+﻿module Program
 
-// For more information see https://aka.ms/fsharp-console-apps
-printfn "Hello from F#"
+open System.IO
+open Day1
+
+[<EntryPoint>]
+let main args =
+    let input = File.ReadLines "Day1Part1.txt" |> Seq.toList
+    let result = solve input
+    printfn "Part 1: %i" result
+
+    let result2 = solve2 input
+    printfn "Part 2: %i" result2
+    0
