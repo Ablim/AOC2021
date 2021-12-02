@@ -1,6 +1,5 @@
-module Tests
+module Day1Tests
 
-open System
 open Xunit
 open Day1
 open System.IO
