@@ -15,4 +15,4 @@ module Day5Tests =
     let ``Day 5 Part 2`` () =
         let input = File.ReadLines "Data/Day5Part1.txt" |> Seq.toList
         let result = solve2 input
-        Assert.Equal(1924, result)
+        Assert.Equal(12, result)
