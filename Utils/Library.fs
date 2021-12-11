@@ -15,3 +15,14 @@ module Printer =
 
 
 // module for reading input via http
+
+
+
+module ListHelper = 
+    let rec private loop (list: 'a list) (counter: bigint) =
+        match list with
+        | [] -> counter
+        | _ -> loop list.Tail (counter + 1I)
+    
+    let count (list: 'a list) =
+        loop list 0I
