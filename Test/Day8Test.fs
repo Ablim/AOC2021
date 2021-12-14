@@ -1,6 +1,6 @@
 namespace Test
 
-module Day8Tests = 
+module Day8Test = 
     open Xunit
     open System.IO
     open Day8

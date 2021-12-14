@@ -26,3 +26,11 @@ module ListHelper =
     
     let count (list: 'a list) =
         loop list 0I
+
+
+module ArrayUtils =
+    let tryGetValue2D (array: 'a[,]) (row: int) (column: int) =
+        try
+            Some array.[row, column]
+        with
+            | :? System.IndexOutOfRangeException -> None
