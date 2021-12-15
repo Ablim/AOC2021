@@ -37,14 +37,39 @@ let solve (data: string list) =
     |> List.sum
 
 
-let getBasin (map: int[,]) (row: int) (column: int) =
-    []
+let getBasin (map: int[,]) (point: int * int * int) =
+    let mutable basin = []
+    let mutable candidates = [ point ]
+
+    while candidates.Length > 0 do
+        let mutable newCandidates = []
+
+        for (value, row, col) in candidates do
+            basin <- (value, row, col) :: basin
+            let neighbors =
+                [
+                    (tryGetValue2D map (row - 1) col, row - 1, col);
+                    (tryGetValue2D map (row + 1) col, row + 1, col);
+                    (tryGetValue2D map row (col - 1), row, col - 1);
+                    (tryGetValue2D map row (col + 1), row, col + 1)
+                ]
+                |> List.filter (fun (some, _, _) -> some.IsSome)
+                |> List.map (fun (some, r, c) -> (some.Value, r, c))
+                |> List.filter (fun p -> basin |> List.contains p |> not)
+                |> List.filter (fun p -> newCandidates |> List.contains p |> not)
+                |> List.filter (fun (v, _, _) -> v < 9 && v >= value)
+            
+            newCandidates <- List.append newCandidates neighbors
+
+        candidates <- newCandidates
+    
+    basin
 
 
 let solve2 (data: string list) =
     let map = array2D data |> Array2D.map (fun x -> x |> string |> int)
     let lowPoints = getLowPoints map
-    let basins = lowPoints |> List.map (fun (_, r, c) -> getBasin map r c)
+    let basins = lowPoints |> List.map (fun x -> getBasin map x)
     basins
     |> List.sortByDescending (fun x -> x.Length)
     |> List.take 3
