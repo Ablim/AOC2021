@@ -18,7 +18,7 @@ module Printer =
 
 
 
-module ListHelper = 
+module ListUtils = 
     let rec private loop (list: 'a list) (counter: bigint) =
         match list with
         | [] -> counter
@@ -34,3 +34,14 @@ module ArrayUtils =
             Some array.[row, column]
         with
             | :? System.IndexOutOfRangeException -> None
+
+
+module DictionaryUtils =
+    open System.Collections.Generic
+    
+    let addOne (collection: Dictionary<'a, int>) (key: 'a) =
+        if collection.ContainsKey key then
+            collection.[key] <- collection.[key] + 1
+        else
+            collection.Add (key, 1)
+        collection
