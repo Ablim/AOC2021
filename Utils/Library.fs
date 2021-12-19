@@ -36,6 +36,15 @@ module ArrayUtils =
             | :? System.IndexOutOfRangeException -> None
 
 
+    let flatten2D (array: 'a[,]) =
+        let mutable result = []
+        let length = array |> Array2D.length1
+        for i in [0..length - 1] do
+            let row = array.[i, *] |> Array.toList
+            result <- result |> List.append row
+        result
+
+
 module DictionaryUtils =
     open System.Collections.Generic
     
