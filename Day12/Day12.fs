@@ -5,23 +5,26 @@ module Solver =
         cave.ToLower () = cave
 
 
-    let canAdd (cave: string) (path: string list) (allowedPairs: int) =
-        let pairs =
-            cave :: path
-            |> List.filter (fun x -> x |> isSmall)
-            |> List.groupBy (fun x -> x)
-            |> List.filter (fun (_, y) -> y.Length > 1)
-            |> List.length
-        pairs <= allowedPairs
+    let canAdd1 (cave: string) (path: string list) =
+        (cave |> isSmall && path |> List.contains cave) |> not
+
+
+    let canAdd2 (cave: string) (path: string list) =
+        if cave |> isSmall then
+            let onlySmall = path |> List.filter (fun x -> x |> isSmall)
+            let distinctSmall = onlySmall |> List.distinct
+            path |> List.contains cave |> not || onlySmall.Length = distinctSmall.Length
+        else
+            true
 
     
     let rec buildPaths (cave: string) (path: string list) (smallOnce: bool) (lookup: Map<string, string list>) =
         if (cave = "end") then
             [ cave :: path ] |> List.rev
         else
-            if smallOnce && canAdd cave path 0 |> not then
+            if smallOnce && canAdd1 cave path |> not then
                 []
-            elif smallOnce |> not && canAdd cave path 1 |> not then
+            elif smallOnce |> not && canAdd2 cave path |> not then
                 []
             else
                 let newPath = cave :: path
