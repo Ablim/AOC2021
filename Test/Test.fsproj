@@ -44,6 +44,9 @@
     <Content Include="Data\Day12Part1.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Data\Day13Part1.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Day1Test.fs" />
     <Compile Include="Day2Test.fs" />
     <Compile Include="Day3Test.fs" />
@@ -56,6 +59,7 @@
     <Compile Include="Day10Test.fs" />
     <Compile Include="Day11Test.fs" />
     <Compile Include="Day12Test.fs" />
+    <Compile Include="Day13Test.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -76,6 +80,7 @@
     <ProjectReference Include="..\Day10\Day10.fsproj" />
     <ProjectReference Include="..\Day11\Day11.fsproj" />
     <ProjectReference Include="..\Day12\Day12.fsproj" />
+    <ProjectReference Include="..\Day13\Day13.fsproj" />
     <ProjectReference Include="..\Day1\Day1.fsproj" />
     <ProjectReference Include="..\Day2\Day2.fsproj" />
     <ProjectReference Include="..\Day3\Day3.fsproj" />
