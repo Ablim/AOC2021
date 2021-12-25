@@ -21,4 +21,11 @@ module Day13Test =
             File.ReadLines filename 
             |> Seq.toList 
             |> Solver.solve2
-        Assert.Equal(36, result)
+        
+        let part2Result =
+            File.ReadLines "Data/Day13Part2.txt"
+            |> Seq.toList
+            |> array2D
+            |> Array2D.map (fun x -> if x = '.' then 0 else 1)
+        
+        Assert.Equal(part2Result, result)

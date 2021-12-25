@@ -47,6 +47,9 @@
     <Content Include="Data\Day13Part1.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Data\Day13Part2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Day1Test.fs" />
     <Compile Include="Day2Test.fs" />
     <Compile Include="Day3Test.fs" />

@@ -2,6 +2,7 @@
 
 module Program =
     open System.IO
+    open Utils
 
     [<EntryPoint>]
     let main args =        
@@ -10,5 +11,6 @@ module Program =
         printfn "Part 1: %i" result
 
         let result2 = Solver.solve2 input
-        printfn "Part 2: %i" result2
+        printfn "Part 2:"
+        Printer.print2D result2
         0
