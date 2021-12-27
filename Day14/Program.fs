@@ -10,5 +10,5 @@ module Program =
         printfn "Part 1: %i" result
 
         let result2 = Solver.solve2 input
-        printfn "Part 2: %i" result2
+        printfn "Part 2: %A" result2
         0
