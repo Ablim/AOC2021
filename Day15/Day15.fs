@@ -10,6 +10,7 @@ type Path =
         val y: int
         val cost: int
         val path: Set<(int * int)>
+        val pathLength: int
 
         new (x, y, cost, path) =
             {
@@ -17,18 +18,25 @@ type Path =
                 y = y;
                 cost = cost
                 path = path
+                pathLength = path.Count
             }
 
         interface IComparable with
             member this.CompareTo(other: obj): int = 
                 match other with
                 | :? Path as p ->
-                    if this.GetHashCode() = p.GetHashCode() then
-                        0
-                    elif this.cost < p.cost then
+                    if this.cost < p.cost then
                         -1
-                    else
+                    elif this.cost > p.cost then
                         1
+                    elif this.pathLength > p.pathLength then
+                        -1
+                    elif this.pathLength < p.pathLength then
+                        1
+                    elif this.x <> p.x then
+                        this.x.CompareTo p.x
+                    else
+                        this.y.CompareTo p.y
                 | _ -> -1
         
         interface IEquatable<Path> with
@@ -50,16 +58,18 @@ module Solver =
         let mutable pathSet = Set.ofList paths
         let mutable path = pathSet.MinimumElement
         let goal = (Array2D.length2 map - 1, Array2D.length1 map - 1)
+        let mutable timestamp = DateTime.Now.AddSeconds 30
         
         while (path.x, path.y) <> goal do
-            let timestamp = DateTime.Now
-            if timestamp.Second = 0 then printfn "Paths: %i, shortest: %i, x: %i, y: %i" pathSet.Count path.cost path.x path.y 
+            if DateTime.Now.Second = timestamp.Second then
+                printfn "Paths: %i, shortest: %i, x: %i, y: %i" pathSet.Count path.cost path.x path.y 
+                timestamp <- DateTime.Now.AddSeconds 30
 
             let newSteps =
                 [
-                    //(ArrayUtils.tryGetValue2D map (path.y - 1) path.x, path.x, (path.y - 1));
+                    (ArrayUtils.tryGetValue2D map (path.y - 1) path.x, path.x, (path.y - 1));
                     (ArrayUtils.tryGetValue2D map (path.y + 1) path.x, path.x, (path.y + 1));
-                    //(ArrayUtils.tryGetValue2D map path.y (path.x - 1), (path.x - 1), path.y);
+                    (ArrayUtils.tryGetValue2D map path.y (path.x - 1), (path.x - 1), path.y);
                     (ArrayUtils.tryGetValue2D map path.y (path.x + 1), (path.x + 1), path.y)
                 ]
                 |> List.filter (fun (cost, x, y) ->
