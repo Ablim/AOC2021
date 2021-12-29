@@ -109,8 +109,33 @@ module Solver =
 
 
     let create5By5 (map: int[,]) =
-        map
+        let height = Array2D.length1 map
+        let width = Array2D.length2 map
+        let bigMoma = Array2D.zeroCreate<int> (height * 5) (width * 5)
+
+        for y in [0..Array2D.length1 bigMoma - 1] do
+            for x in [0..Array2D.length2 bigMoma - 1] do
+                let transY = y % height
+                let transX = x % width
+                let value = map.[transY, transX]
+                let extraY = y / height
+                let extraX = x / width
+                let newValue = value + extraX + extraY
+                bigMoma.[y, x] <- if newValue > 9 then newValue % 9 else newValue
+
+        bigMoma
 
 
     let solve2 (data: string list) =
-        0
+        let map =
+            data
+            |> array2D
+            |> Array2D.map (fun x -> x |> string |> int)
+            |> create5By5
+        let seed =
+            [
+                Path(1, 0, map.[0, 1], Set.ofList [ (0, 0); (1, 0) ], 2);
+                Path(0, 1, map.[1, 0], Set.ofList [ (0, 0); (0, 1) ], 2)
+            ]
+        let shortestPath = shortestPath map seed
+        shortestPath.cost
