@@ -10,15 +10,15 @@ type Path =
         val y: int
         val cost: int
         val path: Set<(int * int)>
-        val pathLength: int
+        val length: int
 
-        new (x, y, cost, path) =
+        new (x, y, cost, path, length) =
             {
                 x = x;
                 y = y;
                 cost = cost
                 path = path
-                pathLength = path.Count
+                length = length
             }
 
         interface IComparable with
@@ -29,9 +29,9 @@ type Path =
                         -1
                     elif this.cost > p.cost then
                         1
-                    elif this.pathLength > p.pathLength then
+                    elif this.length > p.length then
                         -1
-                    elif this.pathLength < p.pathLength then
+                    elif this.length < p.length then
                         1
                     elif this.x <> p.x then
                         this.x.CompareTo p.x
@@ -54,11 +54,20 @@ type Path =
 
 
 module Solver =
+    let rec diagonalCost (map: int[,]) (x: int) (y: int) (sum: int) (down: bool) =
+        let goal = (Array2D.length2 map - 1, Array2D.length1 map - 1)
+        if ((x, y) = goal) then
+            sum + map.[y, x]
+        else
+            diagonalCost map (if down then x else x + 1) (if down then y + 1 else y) (sum + map.[y, x]) (not down)
+
+
     let shortestPath (map: int[,]) (paths: Path list) =
         let mutable pathSet = Set.ofList paths
         let mutable path = pathSet.MinimumElement
         let goal = (Array2D.length2 map - 1, Array2D.length1 map - 1)
         let mutable timestamp = DateTime.Now.AddSeconds 30
+        let threshold = diagonalCost map 0 0 0 true
         
         while (path.x, path.y) <> goal do
             if DateTime.Now.Second = timestamp.Second then
@@ -74,8 +83,9 @@ module Solver =
                 ]
                 |> List.filter (fun (cost, x, y) ->
                     cost.IsSome
-                    && path.path.Contains (x, y) |> not)
-                |> List.map (fun (cost, x, y) -> Path(x, y, path.cost + cost.Value, path.path.Add (x, y)))
+                    && path.path.Contains (x, y) |> not
+                    && path.cost + cost.Value < threshold)
+                |> List.map (fun (cost, x, y) -> Path(x, y, path.cost + cost.Value, path.path.Add (x, y), path.length + 1))
             
             pathSet <- pathSet.Remove path
             newSteps |> List.iter (fun x -> pathSet <- pathSet.Add x)
@@ -91,11 +101,15 @@ module Solver =
             |> Array2D.map (fun x -> x |> string |> int)
         let seed =
             [
-                Path(1, 0, map.[0, 1], Set.ofList [ (0, 0); (1, 0) ]);
-                Path(0, 1, map.[1, 0], Set.ofList [ (0, 0); (0, 1) ])
+                Path(1, 0, map.[0, 1], Set.ofList [ (0, 0); (1, 0) ], 2);
+                Path(0, 1, map.[1, 0], Set.ofList [ (0, 0); (0, 1) ], 2)
             ]
         let shortestPath = shortestPath map seed
         shortestPath.cost
+
+
+    let create5By5 (map: int[,]) =
+        map
 
 
     let solve2 (data: string list) =

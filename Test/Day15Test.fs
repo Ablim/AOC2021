@@ -18,4 +18,4 @@ module Day15Test =
     let ``Part 2`` () =
         let input = File.ReadLines filename |> Seq.toList
         let result = Solver.solve2 input
-        Assert.Equal(1588, result)
+        Assert.Equal(315, result)
