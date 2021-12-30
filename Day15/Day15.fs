@@ -54,26 +54,13 @@ type Path =
 
 
 module Solver =
-    let rec diagonalCost (map: int[,]) (x: int) (y: int) (sum: int) (down: bool) =
-        let goal = (Array2D.length2 map - 1, Array2D.length1 map - 1)
-        if ((x, y) = goal) then
-            sum + map.[y, x]
-        else
-            diagonalCost map (if down then x else x + 1) (if down then y + 1 else y) (sum + map.[y, x]) (not down)
-
-
-    let shortestPath (map: int[,]) (paths: Path list) =
-        let mutable pathSet = Set.ofList paths
+    let shortestPath (map: int[,]) (paths: Set<Path>) =
+        let mutable pathSet = paths
         let mutable path = pathSet.MinimumElement
         let goal = (Array2D.length2 map - 1, Array2D.length1 map - 1)
-        let mutable timestamp = DateTime.Now.AddSeconds 30
-        let threshold = diagonalCost map 0 0 0 true
+        let costMap = Array2D.create (Array2D.length1 map) (Array2D.length2 map) Int32.MaxValue
         
         while (path.x, path.y) <> goal do
-            if DateTime.Now.Second = timestamp.Second then
-                printfn "Paths: %i, shortest: %i, x: %i, y: %i" pathSet.Count path.cost path.x path.y 
-                timestamp <- DateTime.Now.AddSeconds 30
-
             let newSteps =
                 [
                     (ArrayUtils.tryGetValue2D map (path.y - 1) path.x, path.x, (path.y - 1));
@@ -84,11 +71,13 @@ module Solver =
                 |> List.filter (fun (cost, x, y) ->
                     cost.IsSome
                     && path.path.Contains (x, y) |> not
-                    && path.cost + cost.Value < threshold)
+                    && path.cost + cost.Value <= costMap.[y, x])
                 |> List.map (fun (cost, x, y) -> Path(x, y, path.cost + cost.Value, path.path.Add (x, y), path.length + 1))
             
             pathSet <- pathSet.Remove path
-            newSteps |> List.iter (fun x -> pathSet <- pathSet.Add x)
+            newSteps |> List.iter (fun x ->
+                pathSet <- pathSet.Add x
+                costMap.[x.y, x.x] <- x.cost)
             path <- pathSet.MinimumElement
 
         path
@@ -104,8 +93,9 @@ module Solver =
                 Path(1, 0, map.[0, 1], Set.ofList [ (0, 0); (1, 0) ], 2);
                 Path(0, 1, map.[1, 0], Set.ofList [ (0, 0); (0, 1) ], 2)
             ]
-        let shortestPath = shortestPath map seed
-        shortestPath.cost
+            |> Set.ofList
+        let path = shortestPath map seed
+        path.cost
 
 
     let create5By5 (map: int[,]) =
@@ -137,5 +127,6 @@ module Solver =
                 Path(1, 0, map.[0, 1], Set.ofList [ (0, 0); (1, 0) ], 2);
                 Path(0, 1, map.[1, 0], Set.ofList [ (0, 0); (0, 1) ], 2)
             ]
-        let shortestPath = shortestPath map seed
-        shortestPath.cost
+            |> Set.ofList
+        let path = shortestPath map seed
+        path.cost
