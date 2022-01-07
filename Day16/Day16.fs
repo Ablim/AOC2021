@@ -38,6 +38,17 @@ module Solver =
         | _ -> PacketType.Operator
 
 
+    let getLengthTypeId (data: int[]) =
+        data.[6]
+
+
+    let parseLengthTypeId (lengthTypeId: int) (data: int[]) =
+        match lengthTypeId with
+        | 0 -> Array.sub data 7 15
+        | 1 -> Array.sub data 7 11
+        | _ -> [||]
+
+
     let toDecimal (bits: int[]) =
         let maxIndex = bits.Length - 1
         let bitList = Array.toList bits
@@ -49,20 +60,52 @@ module Solver =
                 loop (index - 1) (sum + current) remaining.Tail
         loop maxIndex 0 bitList
 
+
+    let parsePacketsByLength (data: int[]) =
+        []
+
+
+    let parsePacketsByCount (data: int[]) =
+        []
+
+
+    let rec countVersions (data: int[]) =
+        let version = (getVersion >> toDecimal) data
+        let packetType = (getTypeId >> toDecimal >> getPacketType) data
+            
+        match packetType with
+        | PacketType.Literal -> version
+        | PacketType.Operator ->
+            let lengthType = getLengthTypeId data
+            let subLength = parseLengthTypeId lengthType data |> toDecimal
+            let subPackets = 
+                match lengthType with
+                | 0 ->
+                    Array.sub data 22 subLength
+                    |> parsePacketsByLength
+                | 1 -> 
+                    Array.sub data 18 (data.Length - 18)
+                    |> parsePacketsByCount
+                | _ -> []
+
+            let subPacketSum =
+                seq {
+                    for packet in subPackets do
+                        yield countVersions packet
+                }
+                |> Seq.sum
+            version + subPacketSum
+
+        | _ -> 0
+
     
-    let solve (data: string list) =
-        let apa = 
-            "D2FE28".ToCharArray()
+    let solve (data: string) =
+        let bits = 
+            data.ToCharArray()
             |> Array.map (fun x -> fromHex x)
             |> Array.collect (fun x -> x)
-        let bepa = String (apa |> Array.map (fun x -> x |> string |> char))
-        printfn "%s" bepa
-        let version = (getVersion >> toDecimal) apa
-        printfn "Version %i" version
-        let typeId = (getTypeId >> toDecimal) apa
-        printfn "Type id %i" typeId
-        0
+        countVersions bits
 
 
-    let solve2 (data: string list) =
+    let solve2 (data: string) =
         0

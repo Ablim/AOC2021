@@ -5,7 +5,7 @@ module Program =
 
     [<EntryPoint>]
     let main args =        
-        let input = File.ReadLines "Day16Part1.txt" |> Seq.toList
+        let input = File.ReadLines "Day16Part1.txt" |> Seq.head
         let result = Solver.solve input
         printfn "Part 1: %i" result
 
