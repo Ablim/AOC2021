@@ -61,6 +61,18 @@ module Solver =
         loop maxIndex 0 bitList
 
 
+    let toDecimalBig (bits: int[]) =
+        let maxIndex = bits.Length - 1
+        let bitList = Array.toList bits
+        let rec loop (index: int) (sum: bigint) (remaining: int list) =
+            match remaining with
+            | [] -> sum
+            | _ ->
+                let current = (remaining.Head |> bigint) * pown 2I index
+                loop (index - 1) (sum + current) remaining.Tail
+        loop maxIndex 0I bitList
+
+
     let parseLiteral (data: int[]) =
         let mutable i = 6
         while data.[i] = 1 do
@@ -86,7 +98,7 @@ module Solver =
             | _ -> ([||], [||])
 
         if packages.Length = count then
-            packages
+            List.rev packages
         else
             let packetType = (getTypeId >> toDecimal >> getPacketType) data
             
@@ -116,7 +128,7 @@ module Solver =
             | _ -> ([||], [||])
         
         if (data.Length = 0) then
-            packages
+            List.rev packages
         else
             let packetType = (getTypeId >> toDecimal >> getPacketType) data
         
@@ -159,14 +171,73 @@ module Solver =
 
         | _ -> 0
 
+
+    let rec product (terms: bigint list) =
+        if terms.Length = 1 then
+            terms.Head
+        else
+            terms.Head * product terms.Tail
+
+
+    let rec execute (data: int[]) =
+        let packetType = (getTypeId >> toDecimal >> getPacketType) data
+            
+        match packetType with
+        | PacketType.Literal ->
+            let (literal, _) = parseLiteral data
+            toDecimalBig (Array.sub literal 6 (literal.Length - 6))
+        | PacketType.Operator ->
+            let lengthType = getLengthTypeId data
+            let subLength = parseLengthTypeId lengthType data |> toDecimal
+            let subPackets = 
+                match lengthType with
+                | 0 ->
+                    Array.sub data 22 subLength
+                    |> parsePacketsByLength []
+                | 1 -> 
+                    Array.sub data 18 (data.Length - 18)
+                    |> parsePacketsByCount [] subLength
+                | _ -> []
+
+            let subPacketResult =
+                seq {
+                    for packet in subPackets do
+                        yield execute packet
+                }
+                |> Seq.toList
+            
+            let operation = (getTypeId >> toDecimal) data
+            match operation with
+            | 0 -> List.sum subPacketResult 
+            | 1 -> product subPacketResult
+            | 2 -> List.min subPacketResult
+            | 3 -> List.max subPacketResult
+            | 5 ->
+                let a = subPacketResult.Head
+                let b = subPacketResult.Tail.Head
+                if a > b then 1I else 0I
+            | 6 ->
+                let a = subPacketResult.Head
+                let b = subPacketResult.Tail.Head
+                if a < b then 1I else 0I
+            | 7 ->
+                let a = subPacketResult.Head
+                let b = subPacketResult.Tail.Head
+                if a = b then 1I else 0I
+            | _ -> 0I
+
+        | _ -> 0I
+
     
     let solve (data: string) =
-        let bits = 
-            data.ToCharArray()
-            |> Array.map (fun x -> fromHex x)
-            |> Array.collect (fun x -> x)
-        countVersions bits
+        data.ToCharArray()
+        |> Array.map (fun x -> fromHex x)
+        |> Array.collect (fun x -> x)
+        |> countVersions
 
 
     let solve2 (data: string) =
-        0
+        data.ToCharArray()
+        |> Array.map (fun x -> fromHex x)
+        |> Array.collect (fun x -> x)
+        |> execute

@@ -2,7 +2,6 @@ namespace Test
 
 module Day16Test = 
     open Xunit
-    open System.IO
     open Day16
 
     let filename = "Data/Day16Part1.txt"
@@ -20,8 +19,15 @@ module Day16Test =
         Assert.Equal(versionSum, result)
 
 
-    [<Fact>]
-    let ``Part 2`` () =
-        let input = File.ReadLines filename |> Seq.head
-        let result = Solver.solve2 input
-        Assert.Equal(315, result)
+    [<Theory>]
+    [<InlineDataAttribute("C200B40A82", 3)>]
+    [<InlineDataAttribute("04005AC33890", 54)>]
+    [<InlineDataAttribute("880086C3E88112", 7)>]
+    [<InlineDataAttribute("CE00C43D881120", 9)>]
+    [<InlineDataAttribute("D8005AC2A8F0", 1)>]
+    [<InlineDataAttribute("F600BC2D8F", 0)>]
+    [<InlineDataAttribute("9C005AC2F8F0", 0)>]
+    [<InlineDataAttribute("9C0141080250320F1802104A08", 1)>]
+    let ``Part 2`` (packet: string) (expected: int) =
+        let result = Solver.solve2 packet
+        Assert.Equal(expected |> bigint, result)
