@@ -61,12 +61,73 @@ module Solver =
         loop maxIndex 0 bitList
 
 
-    let parsePacketsByLength (data: int[]) =
-        []
+    let parseLiteral (data: int[]) =
+        let mutable i = 6
+        while data.[i] = 1 do
+            i <- i + 5
+        i <- i + 5
+            
+        Array.splitAt i data
 
 
-    let parsePacketsByCount (data: int[]) =
-        []
+    let rec parsePacketsByCount (packages: int[] list) (count: int) (data: int[]) =
+        let parseOperator (_data: int[]) =
+            let lengthType = getLengthTypeId _data
+            let length = parseLengthTypeId lengthType _data |> toDecimal
+            match lengthType with
+            | 0 ->
+                Array.splitAt (7 + 15 + length) _data
+            | 1 ->
+                let subPacketsLength =
+                    parsePacketsByCount [] length (Array.sub _data 18 (_data.Length - 18))
+                    |> Seq.collect (fun x -> x)
+                    |> Seq.length
+                Array.splitAt (7 + 11 + subPacketsLength) _data
+            | _ -> ([||], [||])
+
+        if packages.Length = count then
+            packages
+        else
+            let packetType = (getTypeId >> toDecimal >> getPacketType) data
+            
+            match packetType with
+            | PacketType.Literal ->
+                let (newPackage, remaining) = parseLiteral data
+                parsePacketsByCount (newPackage :: packages) count remaining
+            | PacketType.Operator ->
+                let (newPackage, remaining) = parseOperator data
+                parsePacketsByCount (newPackage :: packages) count remaining
+            | _ -> []
+
+
+    let rec parsePacketsByLength (packages: int[] list) (data: int[]) =
+        let parseOperator (_data: int[]) =
+            let lengthType = getLengthTypeId _data
+            let length = parseLengthTypeId lengthType _data |> toDecimal
+            match lengthType with
+            | 0 ->
+                Array.splitAt (7 + 15 + length) _data
+            | 1 ->
+                let subPacketsLength =
+                    parsePacketsByCount [] length (Array.sub _data 18 (_data.Length - 18))
+                    |> Seq.collect (fun x -> x)
+                    |> Seq.length
+                Array.splitAt (7 + 11 + subPacketsLength) _data
+            | _ -> ([||], [||])
+        
+        if (data.Length = 0) then
+            packages
+        else
+            let packetType = (getTypeId >> toDecimal >> getPacketType) data
+        
+            match packetType with
+            | PacketType.Literal ->
+                let (newPackage, remaining) = parseLiteral data
+                parsePacketsByLength (newPackage :: packages) remaining
+            | PacketType.Operator -> 
+                let (newPackage, remaining) = parseOperator data
+                parsePacketsByLength (newPackage :: packages) remaining
+            | _ -> []
 
 
     let rec countVersions (data: int[]) =
@@ -82,10 +143,10 @@ module Solver =
                 match lengthType with
                 | 0 ->
                     Array.sub data 22 subLength
-                    |> parsePacketsByLength
+                    |> parsePacketsByLength []
                 | 1 -> 
                     Array.sub data 18 (data.Length - 18)
-                    |> parsePacketsByCount
+                    |> parsePacketsByCount [] subLength
                 | _ -> []
 
             let subPacketSum =
