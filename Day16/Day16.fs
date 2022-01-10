@@ -73,7 +73,7 @@ module Solver =
         loop maxIndex 0I bitList
 
 
-    let parseLiteral (data: int[]) =
+    let parseLiteralPacket (data: int[]) =
         let mutable i = 6
         while data.[i] = 1 do
             i <- i + 5
@@ -104,7 +104,7 @@ module Solver =
             
             match packetType with
             | PacketType.Literal ->
-                let (newPackage, remaining) = parseLiteral data
+                let (newPackage, remaining) = parseLiteralPacket data
                 parsePacketsByCount (newPackage :: packages) count remaining
             | PacketType.Operator ->
                 let (newPackage, remaining) = parseOperator data
@@ -134,7 +134,7 @@ module Solver =
         
             match packetType with
             | PacketType.Literal ->
-                let (newPackage, remaining) = parseLiteral data
+                let (newPackage, remaining) = parseLiteralPacket data
                 parsePacketsByLength (newPackage :: packages) remaining
             | PacketType.Operator -> 
                 let (newPackage, remaining) = parseOperator data
@@ -179,13 +179,26 @@ module Solver =
             terms.Head * product terms.Tail
 
 
+    let parseLiteralValue (packet: int[]) =
+        let paddedBits = Array.sub packet 6 (packet.Length - 6)
+        let mutable result = []
+
+        for i in [0..paddedBits.Length - 1] do
+            if i % 5 <> 0 then
+                result <- paddedBits.[i] :: result
+
+        result
+        |> List.rev
+        |> List.toArray
+
+
     let rec execute (data: int[]) =
         let packetType = (getTypeId >> toDecimal >> getPacketType) data
             
         match packetType with
         | PacketType.Literal ->
-            let (literal, _) = parseLiteral data
-            toDecimalBig (Array.sub literal 6 (literal.Length - 6))
+            let (literal, _) = parseLiteralPacket data
+            (parseLiteralValue >> toDecimalBig) literal
         | PacketType.Operator ->
             let lengthType = getLengthTypeId data
             let subLength = parseLengthTypeId lengthType data |> toDecimal
